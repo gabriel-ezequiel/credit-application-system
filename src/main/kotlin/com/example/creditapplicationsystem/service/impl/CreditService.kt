@@ -5,6 +5,7 @@ import com.example.creditapplicationsystem.exception.BusinessException
 import com.example.creditapplicationsystem.repositor.CreditRepository
 import com.example.creditapplicationsystem.service.ICreditService
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 import java.util.*
 
 @Service
@@ -13,6 +14,7 @@ class CreditService(
     private val customerService: CustomerService
 ): ICreditService {
     override fun save(credit: Credit): Credit {
+        this.validDayFirstInstallment(credit.dayFirstInstallment)
         credit.apply {
             customer = customerService.findById(credit.customer?.id!!)
         }
@@ -27,4 +29,9 @@ class CreditService(
             ?: throw BusinessException("Creditcode $creditCode not found")
         return if (credit.customer?.id == customerId) credit else throw IllegalArgumentException("Contact admin")
     }
+
+    private fun validDayFirstInstallment(dayFirstInstallment: LocalDate): Boolean {
+        return if (dayFirstInstallment.isBefore(LocalDate.now().plusMonths(3))) true
+        else throw BusinessException("Invalid Date")
+      }
 }
